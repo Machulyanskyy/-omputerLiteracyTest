@@ -8,3 +8,15 @@ and open the template in the editor.
     Author     : machuyanskyi_d
 */
 
+.answers{
+    display: none;
+    margin-left: 20px;
+}
+
+.questions p, .questions input, .answers p, .answers input{
+    display: inline-block;
+}
+
+input[name='cancel_change'], input[name='edit_qa']{
+    display: none;
+}
