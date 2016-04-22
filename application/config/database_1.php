@@ -55,22 +55,29 @@
     'escape'        => TRUE
 );*/
 
-return array
-(
-    'default' => array
-    (
-        'type'          => 'Oracle',       // string (e.g. SQL, NoSQL, or LDAP)
-        'dialect'       => 'Oracle',     // string (e.g. DB2, Drizzle, Firebird, MariaDB, MsSQL, MySQL, Oracle, PostgreSQL, or SQLite)
-        'driver'        => 'Standard',
-        'connection' => array(
-        'hostname'   => '192.168.122.34',
-        'username'   => 'kom_0',
-        'password'   => 'kom_0',
-        'persistent' => FALSE,
-        'database'   => 'orcl',
-        ),
-        'table_prefix' => '',
-        'charset'      => 'utf8',
-        'profiling'    => TRUE,
-    )
-);
+$config = array();
+$config['default'] = array(
+    'type'          => 'LDAP',       // string (e.g. SQL, NoSQL, or LDAP)
+    'dialect'       => 'Oracle',     // string (e.g. DB2, Drizzle, Firebird, MariaDB, MsSQL, MySQL, Oracle, PostgreSQL, or SQLite)
+    'driver'        => 'Standard',  // string (e.g. Standard, Improved, or PDO)
+    'connection'    => array(
+        'persistent'    => FALSE,       // boolean
+        'hostname'      => 'localhost', // string
+        'port'          => FALSE,          // string
+        
+        'database' => '(DESCRIPTION =
+                        (ADDRESS = (PROTOCOL = TCP)(HOST = 192.168.122.34)(PORT = 1521))
+                        (CONNECT_DATA =
+                                (SERVER = DEDICATED)
+                                (SERVICE_NAME = orcl)
+                                        )
+                        )',
+
+        'username'     => 'kom_0',
+        'passwod'     => 'kom_0',
+   ),
+    
+    'caching'       => FALSE,       // boolean
+    'charset'       => 'utf8',      // string
+ );
+ return $config;

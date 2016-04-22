@@ -7,12 +7,20 @@ and open the template in the editor.
 <html>
     <head>
         <meta charset="UTF-8">
-        <title></title>
+        <link rel="stylesheet" type="text/css" href="../application/style/autorisation.css">
+        <link href='/application/style/dashboard.css' rel="stylesheet">
+        <title>    
+        </title>
     </head>
     <body>
-        fdgdfg
+        <h1>Главная страница</h1><br>
         <?php
             echo $content;
         ?>
     </body>
+    <footer>
+        <script src="/application/scripts/jquery-2.2.3.min.js"></script>
+        <script src="/application/scripts/autorisation.js"></script>
+        <script src="/application/scripts/dashboard.js"></script>
+    </footer>
 </html>

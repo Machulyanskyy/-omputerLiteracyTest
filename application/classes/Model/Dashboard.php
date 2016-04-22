@@ -21,6 +21,18 @@ class Model_Dashboard extends Model
        // print_r($results);
     }
     
+    public function get_users()
+    {
+        $builder = DB_SQL::select('default')
+            ->from('USER_QA')
+            ->column('U_NAME')
+            ->column('U_EMAIL')
+            ->column('U_ROLE')
+            ->column('U_ID');
+        $builder->statement();
+        return $builder->query()->as_array();    
+    }
+    
     public function save_qa($qa_id, $quest, $weight, $quest_id, $answ_true)
     {
         $builder = DB_SQL::insert('default')
@@ -104,4 +116,36 @@ class Model_Dashboard extends Model
         return $builder->query()->as_array();    
     }
     
+    public function update_user($id, $name, $email, $role)
+    {
+        $builder = DB_SQL::update('default')
+            ->table('USER_QA')
+            ->set('U_NAME', $name)
+            ->set('U_EMAIL', $email)
+            ->set('U_ROLE', $role)
+            ->where('U_ID', '=', $id);
+        $builder->statement();
+        $builder->execute();
+    }   
+    
+    public function get_user($id)
+    {
+        $builder = DB_SQL::select('default')
+            ->from('USER_QA')
+            ->column('U_NAME')
+            ->column('U_EMAIL')
+            ->column('U_ROLE')
+            ->where('U_ID', '=', $id);
+        $builder->statement();
+        return $builder->query()->as_array();  
+    }
+    
+    public function del_user($id) 
+    {
+        $builder = DB_SQL::delete('default')
+            ->from('USER_QA')
+            ->where('U_ID', '=', $id);
+        $builder->statement();
+        $builder->execute();  
+    }
 }

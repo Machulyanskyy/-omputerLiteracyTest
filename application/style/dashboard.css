@@ -13,10 +13,17 @@ and open the template in the editor.
     margin-left: 20px;
 }
 
-.questions p, .questions input, .answers p, .answers input{
+/*.edit_u{
+    display: none;
+    width: 300px;
+}*/
+
+.questions p, .questions input, .answers p, .answers input, .user p, .user input{
     display: inline-block;
 }
 
-input[name='cancel_change'], input[name='edit_qa']{
+input[name='cancel_change'], input[name='edit_qa'], #test_manage, 
+input[name='cancel_u_change'], input[name='edit_name'], input[name='edit_email']{
     display: none;
 }
+

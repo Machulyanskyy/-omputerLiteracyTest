@@ -6,7 +6,7 @@
 
 $(document).ready(function(){
     $("#add-answ").click(function(){
-        var html = "<li><input type='checkbox'><input type='hidden' name='check-answ[]' value='0' /><input type='text' name='answer[]'>" +
+        var html = "<li><input type='radio'><input type='hidden' name='check-answ[]' value='0' /><input type='text' name='answer[]'>" +
                        "<input type='button' onclick='del_answ(this)' value='Видалити відповідь'></li>";
         $('#answ-list').append(html);
     });
@@ -22,14 +22,9 @@ $(document).ready(function(){
             url: '/dashboard/save',
             type: 'POST',
             data: $('#create-test').serializeArray(),
-                    /*{
-               question: $('#create-test input[name=quest]').val(),
-               answers: $('#answ-list input[type=text]').serialize(),
-               check: $('#answ-list input[type=checkbox]').serialize()
-            },*/
             dataType: 'json',
             success: function(){
-               console.log('заливка пошла');
+               $('#answ-list').hide('slow');
             }
         });
     });
@@ -182,7 +177,7 @@ function cancel_change(event){
 
 function add_answer(event){
     var answer = '<div class="answers" data-q-id="'+ $(event).parent().attr('data-q-id') +'">' + 
-                    '<input type="checkbox" onclick="change_check(this)" />' +
+                    '<input type="radio" name="check'+ $(event).parent().attr('data-q-id')+'[]" onclick="change_check(this)" />' +
                     '<input type="hidden" name="check" value=""/>' +
                     '<p style="display: none;"></p>' + 
                     '<input type="text" name="answer_text" style="width: 600px" required>' +
@@ -212,6 +207,88 @@ function save_question(event){
             $(parent.find('p')).text(text).insertBefore(parent.find('input[name="edit_qa"]')).show('slow');
             $(event).val('Редагувати');
             parent.find('input:first-child').prop( "disabled", true );
+        }
+    });
+}
+
+function show_users()
+{
+    $('#test_manage').hide('slow');
+    $('#user_manage').show('slow');
+}
+
+function show_tests()
+{
+    $('#user_manage').hide('slow');
+    $('#test_manage').show('slow');
+}
+
+function change_u(event){
+    var parent = $(event).parent();
+    var name;
+    var email;
+    if($(event).val() === 'Редагувати' ){
+        parent.find('input[name="cancel_u_change"]').show('slow');
+        parent.find('input:first-child').prop("disabled", false);
+        $(event).val('Зберегти');       
+        name = parent.find('.u_name').text();
+        email = parent.find('.u_email').text();
+        parent.find('.u_name').hide('slow');
+        parent.find('.u_email').hide('slow');
+        parent.find('input[name="edit_name"]').val(name).show('slow');
+        parent.find('input[name="edit_email"]').val(email).show('slow');
+    }
+    else{
+        name = parent.find('input[name="edit_name"]').val();
+        email = parent.find('input[name="edit_email"]').val();
+        $.ajax({
+                url: '/dashboard/update_user',
+                type: 'POST',
+                data: { id : parent.attr('data-id'),
+                        name: name,
+                        email : email,
+                        role: parent.find('input[name="u_role"]').val()
+                },
+                success: function(){
+                    parent.find('input[name="edit_name"]').hide('slow');
+                    parent.find('input[name="edit_email"]').hide('slow');
+                    parent.find('.u_name').text(name).show('slow');
+                    parent.find('.u_email').text(email).show('slow');
+                    parent.find('input[name="cancel_u_change"]').hide('slow');
+                    $(event).val('Редагувати');
+                    parent.find('input:first-child').prop( "disabled", true );
+                }
+        });
+    }
+}
+
+function cancel_u_change(event)
+{
+    var parent = $(event).parent();
+    $.ajax({
+        url: '/dashboard/get_user',
+        type: 'POST',
+        data: { id : parent.attr('data-id')},
+        dataType: 'json',
+        success: function(data){
+            parent.find('.edit_u').hide('slow');
+            parent.find('.u_name').text(data.U_NAME).show('slow');
+            parent.find('.u_email').text(data.U_EMAIL).show('slow');
+            parent.find('input[name="u_role"]').val(data.U_ROLE).prop( "disabled", true );
+            parent.find('input[name="cancel_u_change"]').hide('slow');
+            parent.find('input[name="change_u"]').val('Редагувати');
+        }
+    });
+}
+
+function del_u(event){
+    var parent = $(event).parent();
+    $.ajax({
+        url: '/dashboard/del_user',
+        type: 'POST',
+        data: { id : parent.attr('data-id')},
+        success: function(){
+            parent.hide('slow').remove();
         }
     });
 }
