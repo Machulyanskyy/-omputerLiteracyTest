@@ -6,41 +6,93 @@
 
 $(document).ready(function(){
     $("#add-answ").click(function(){
-        var html = "<li><input type='radio'><input type='hidden' name='check-answ[]' value='0' /><input type='text' name='answer[]'>" +
+        var html = "<li><input type='radio' name='choose-answ[]' required><input type='hidden' name='check-answ[]' value='0'/><input type='text' name='answer[]' required>" +
                        "<input type='button' onclick='del_answ(this)' value='Видалити відповідь'></li>";
         $('#answ-list').append(html);
     });
     
+    $('#create-test').click(function(){
+        $('#qa-status').hide('slow');
+    });
+    
     $('#create-test').submit(function(event){
         event.preventDefault();
-        
-        //$('#answ-list input[type=checkbox]').val(0);
-        //$('#answ-list input:checked').val(1);
-        $('#answ-list input:checked').parent().find('input[type=hidden]').val(1);
-        
-        $.ajax({
-            url: '/dashboard/save',
-            type: 'POST',
-            data: $('#create-test').serializeArray(),
-            dataType: 'json',
-            success: function(){
-               $('#answ-list').hide('slow');
-            }
-        });
+       //console.log($('.questions p').text().search($('#create-test input[name="quest"]').val()));
+        if($('.questions p').text().search($('#create-test input[name="quest"]').val()) === 0)
+            $('#qa-status').text('Вже є таке запитання!').show('slow');
+        else
+        {
+            $('#answ-list input:checked').parent().find('input[type=hidden]').val(1);
+            $.ajax({
+                url: '/dashboard/save',
+                type: 'POST',
+                data: $('#create-test').serializeArray(),
+                dataType: 'json',
+                success: function(data){
+                   console.log(data);               
+                   $('#qa-status').text('Запитання збережено!').show('slow');
+                   $('#answ-list').hide('slow');
+                }
+            });
+        }
     });
     
     $('.questions p').click(function(){
-        console.log('Hey jude');
         $('.answers[data-q-id=' + $(this).parent().attr('data-q-id') + ']').toggle('slow');
     });
-    /*$('.del-answ').click(function(){
-        console.log($(this).parent());
-       $(this).parent().remove();
-    });*/
-    /*$('.check_qa[value="Редагувати"]').change(function(){
-        $(this).find('.smth').val('Зберегти');
-    });*/
 });
+
+function view_stat(event)
+{
+    var parent = $(event).parent();
+        if(!parent.find($('.wrong-answ-list'))[0])
+        {           
+            $.ajax({
+                url: '/dashboard/user_test',
+                type: 'POST',
+                data: {id : parent.attr('data-id')},
+                dataType: 'json',
+                success: function(data){
+                    parent.find('.all_answers').text('Загальна кількість запитань: ' + data.count_all_questions);
+                    parent.find('.wrong_answers').text('Кількість неправильних відповідей користувача: ' + data.count_wrong_answers);
+                    parent.find('.test-result').text('Результат оцінювання: ' + data.result + '%');
+                    if(data.count_wrong_answers > 0)
+                    {
+                        var html = "<table class='wrong-answ-list'><caption>Список неправильних відповідей користувача: <strong>" + $(event).parents('.user').find('.u_name').text() + "</strong></caption><tbody><thead>"+
+                                     "<tr><th>№</th><th>Запитання</th><th>Неправильна відповідь</th><th>Правильна відповідь</th></tr>"+
+                                     "</thead>";
+                        var index = 1;
+                        $.each(data.wrong_answers, function(){
+                            html += "<tr><td>" + index + "</td><td>" + this.QUESTION + "</td><td>" + this.WRONG_ANSWER + "</td><td>" + this.TRUE_ANSWER + "</td></tr>";
+                            index ++;
+                        });
+                        html += "</tbody><table><div><input type='button' class='btn-save-stat' onclick='save_stat(this)' value='Зберегти статистику'></div>"
+                        //parent.find($('#wrong-answ-list tbody')).append(html);
+                        //console.log(html);
+                        $(html).insertAfter(parent.find($('.test-result')));
+                    }
+                    else {
+                        var html = '</br><p class="wrong-answ-list"> Неправильні відповіді відсутні </p>';
+                        $(html).insertAfter(parent.find($('.test-result')));
+                    }
+                }
+            });
+        }
+        parent.find($('.user-status')).slideToggle('slow');
+}
+
+function save_stat(event)
+{
+    $.ajax({
+        url: '/dashboard/generate_pdf',
+        type: 'POST',
+        //data: { data : $(event).parents('.user-status')},
+        success: function(){
+           console.log('Lets generate');
+        }
+    });
+    
+}
 
 function del_answ(event){
     $(event).parent().hide('slow').remove();
@@ -65,7 +117,7 @@ function change_qa(event){
         parent.find('input[name="edit_qa"]').val(text).show('slow');
     }
     else{
-        text = parent.find('input[name="edit_qa"]').val();       
+        text = parent.find('input[name="edit_qa"]').val().trim();       
         if(parent.hasClass('questions')){
             id = parent.attr('data-q-id');
             arg = parent.find('input[name="weight_q"]').val();
@@ -148,10 +200,10 @@ function cancel_change(event){
         dataType: 'json',
         success: function(data){
             parent.find('input[name="edit_qa"]').hide('slow');
-            parent.find('p').text(data.QA_TEXT).show('slow');
+            parent.find('p').text(data.QA_TEXT.trim()).show('slow');
             parent.find('input[name="cancel_change"]').hide('slow');
             parent.find('input[name="change_qa"]').val('Редагувати');
-            if (type == 'question') parent.find('input:first-child').val(data.QA_WEIGHT).prop( "disabled", true );
+            if (type == 'question') parent.find('input:first-child').val(data.QA_WEIGHT.trim()).prop( "disabled", true );
             else 
             {
                 if(data.QA_ANSWER_TRUE == '1') {
@@ -162,12 +214,16 @@ function cancel_change(event){
                     $(event).parent().find('input[name="check"]').val('0');
                     parent.find('input:first-child').prop( "checked", false ).prop( "disabled", true );
                 }
+                
+                if(!$('.answers[data-q-id=' + parent.attr('data-q-id') + '] input').is(':checked'))
+                {
+                    parent.find($('.answers[data-a-id=' + data.TRUE_ID + '] input[type="radio"]').prop( "checked", true ))
+                    parent.find($('.answers[data-a-id=' + data.TRUE_ID + '] input[type="hidden"]').val(1));
+                }
             }
-            /*console.log(data[text]);
-            console.log(data['text']);*/
-        }/*,
-        error: console.log('спіймав на вила')*/
+        }
     });
+    
     /*parent.find('input[name="edit_qa"]').val().hide('slow');
     parent.find('p').show('slow');
     parent.find('input[name="cancel_change"]').hide('slow');
@@ -190,14 +246,14 @@ function add_answer(event){
 
 function save_question(event){
     var parent = $(event).parent();
-    var text = parent.find('input[name="answer_text"]').val();
+    var text = parent.find('input[name="answer_text"]').val().trim();
     var id = parent.attr('data-q-id');
     $.ajax({
         url: '/dashboard/save_answer',
         type: 'POST',
         data: { id : id,
                 text : text,
-                check : parent.find('input[name="check"]').val()},
+                check : parent.find('input[name="check"]').val().trim()},
         success: function(data){
             if($('.answers[data-q-id='+ id +']').is(':hidden')) parent.hide('slow');
             parent.attr('data-a-id', data);
@@ -210,7 +266,22 @@ function save_question(event){
         }
     });
 }
-
+function test_open(event)
+{   
+    var id = $(event).parents('.user').attr('data-id');
+    console.log(id);
+    $.ajax({
+        url: '/dashboard/open_test',
+        type: 'POST',
+        data: { id : id},
+        dataType: 'json',
+        success: function(data){
+           $(event).prop( "disabled", true );
+           var html = "<div class='test-open-status'>Проходження тесту заново дозволено</div>"
+           $(html).insertBefore($(event));
+        }
+    });
+}
 function show_users()
 {
     $('#test_manage').hide('slow');
@@ -239,8 +310,8 @@ function change_u(event){
         parent.find('input[name="edit_email"]').val(email).show('slow');
     }
     else{
-        name = parent.find('input[name="edit_name"]').val();
-        email = parent.find('input[name="edit_email"]').val();
+        name = parent.find('input[name="edit_name"]').val().trim();
+        email = parent.find('input[name="edit_email"]').val().trim();
         $.ajax({
                 url: '/dashboard/update_user',
                 type: 'POST',
@@ -272,9 +343,9 @@ function cancel_u_change(event)
         dataType: 'json',
         success: function(data){
             parent.find('.edit_u').hide('slow');
-            parent.find('.u_name').text(data.U_NAME).show('slow');
-            parent.find('.u_email').text(data.U_EMAIL).show('slow');
-            parent.find('input[name="u_role"]').val(data.U_ROLE).prop( "disabled", true );
+            parent.find('.u_name').text(data.U_NAME.trim()).show('slow');
+            parent.find('.u_email').text(data.U_EMAIL.trim()).show('slow');
+            parent.find('input[name="u_role"]').val(data.U_ROLE.trim()).prop( "disabled", true );
             parent.find('input[name="cancel_u_change"]').hide('slow');
             parent.find('input[name="change_u"]').val('Редагувати');
         }

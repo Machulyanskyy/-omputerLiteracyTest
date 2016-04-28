@@ -13,7 +13,7 @@
                 <td>&nbsp;</td>
                 <td>
                     <input type="submit" value="Войти" name="login" class="btn" />
-                    <input type="submit" value="Регистрация" name="reg_show" class="btn" />
+                    <input type="button" value="Регистрация" name="reg_show" class="btn" />
                 </td>
             </tr>
         </table>
@@ -32,17 +32,17 @@
             </tr>
                 <tr>
                     <td align="right">Пароль: </td>
-                    <td><input type="password" value="" name="U_PASS_reg" required/></td>
+                    <td><input type="password" value="" name="U_PASS_reg" pattern="^\S{6,}$" onchange="this.setCustomValidity(this.validity.patternMismatch ? 'Пароль должен иметь больше 6 символов' : ''); if(this.checkValidity()) form.password_two.pattern = this.value;" required/></td>
                 </tr>
             <tr>
                 <td align="right">Повторите пароль: </td>
-                <td><input type="password" value="" name="U_PASS_confirm" required/></td>
+                <td><input type="password" value="" name="U_PASS_confirm" pattern="^\S{6,}$" onchange="this.setCustomValidity(this.validity.patternMismatch ? 'Пожалуйста, введите тот же пароль, который указан выше' : '');" required/></td>
             </tr>
             <tr>
                 <td>&nbsp;</td>
                 <td>
                     <input type="submit" value="Зарегистрироваться" name="registration" class="btn" />
-                    <input type="submit" value="Вход" name="login_show" class="btn" />
+                    <input type="button" value="Вход" name="login_show" class="btn" />
                 </td>
             </tr>
         </table>

@@ -4,6 +4,7 @@ class Controller_Users extends Controller {
     
     public function action_index()
     {   
+        Session::instance()->destroy();
         $this->response->body(View::factory('login'));
     }
     public function action_registration()
@@ -17,21 +18,21 @@ class Controller_Users extends Controller {
             $email_with_bd = Model::factory('Autorisation')->search_email($email_reg);
             if ($email_with_bd == $email_reg)
             {
-                echo 'такой email уже использован!';
-                //$this->redirect('Welcome');
+                $message = 'Такий email вже використано!';
+                $this->action_redirect($message);
             }
             else 
             {
                 $password_reg = Auth::instance()->hash_password($password_reg.Cookie::$salt); //хеширование пароля, к которому добавлена соль
                 Model::factory('Autorisation')->create_user($name_reg, $email_reg, $password_reg);
-                echo 'вы успешно зарегестрированны!';
-                //$this->redirect('Welcome');
+                $message = 'Ви успішно зареєстровані!';
+                $this->redirect('Questions');
             }
         }
         else
         {
-            echo 'пароли не совпадают';
-            //$this->redirect('Welcome');
+            $message = 'Паролі не співпадають!';
+            $this->action_redirect($message);
         }
     }
     public function action_login()
@@ -46,14 +47,16 @@ class Controller_Users extends Controller {
             {
                 switch ($user_role[0]['U_ROLE']) {
                     case 0:
-                        echo 'Вы вошли как пользователь!';
-                        $this->redirect('dashboard');  
+                        echo 'Ви увійшли як користувач!';
+                        $this->redirect('Questions');  
                         break;
                     case 1:
-                        echo 'Вы вошли как модератор!';
+                        echo 'Ви увійшли як модератор!';
+                        $this->redirect('dashboard');
                         break;
-                    case 3:
-                        echo 'Вы вошли как администратор!';
+                    case 2:
+                        echo 'Ви увійшли як адміністратор!';
+                        $this->redirect('dashboard');
                         break;
                     default:
                         break;
@@ -61,8 +64,15 @@ class Controller_Users extends Controller {
             }
             else 
             {
-                echo 'Не верный емеил или пароль!';
-                $this->redirect('Welcome');
+                $message = 'Не вірний email або пароль !';
+                $this->action_redirect($message);
             }
+    }
+    
+    public function action_redirect($message)
+    {
+        Session::instance()->destroy();
+        $data['error'] = $message;
+        $this->response->body(View::factory('redirect', $data));
     }
 }

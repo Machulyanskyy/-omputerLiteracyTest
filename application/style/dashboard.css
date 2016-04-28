@@ -23,7 +23,7 @@ and open the template in the editor.
 }
 
 input[name='cancel_change'], input[name='edit_qa'], #test_manage, 
-input[name='cancel_u_change'], input[name='edit_name'], input[name='edit_email']{
+input[name='cancel_u_change'], input[name='edit_name'], input[name='edit_email'],#qa-status, .user-status{
     display: none;
 }
 

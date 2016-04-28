@@ -28,6 +28,7 @@ class Model_Dashboard extends Model
             ->column('U_NAME')
             ->column('U_EMAIL')
             ->column('U_ROLE')
+            ->column('U_DATE')
             ->column('U_ID');
         $builder->statement();
         return $builder->query()->as_array();    
@@ -44,6 +45,14 @@ class Model_Dashboard extends Model
             ->column('QA_ANSWER_TRUE', $answ_true);
         $builder->statement();
         $builder->execute();
+        /*$insert = DB::insert('QUESTANS')
+        ->columns(array('QA_TEXT', 'QA_TEXT', 'QA_WEIGHT', 'QA_QUESTION_ID', 'QA_ANSWER_TRUE'))
+        ->values(array($qa_id, $quest, $weight, $quest_id, $answ_true));
+        $results = $insert->execute();
+        //$results = $builder->is_loaded();
+        return $results;*/
+        /*$connection = DB_Connection_Pool::instance()->get_connection('default');
+        $connection->query("INSERT INTO QUESTANS (QA_ID,QA_TEXT,QA_WEIGHT,QA_QUESTION_ID) VALUES ($aaa, $bbb, $ccc, $ddd);");*/
     }
     
     public function remove_question($id_qa)
@@ -107,13 +116,19 @@ class Model_Dashboard extends Model
     
     public function get_answer($id)
     {
-        $builder = DB_SQL::select('default')
+        /*$builder = DB_SQL::select('default')
             ->from('QUESTANS')
             ->column('QA_TEXT')
             ->column('QA_ANSWER_TRUE')
             ->where('QA_ID', '=', $id);
         $builder->statement();
-        return $builder->query()->as_array();    
+        return $builder->query()->as_array();  */
+        $connection = DB_Connection_Pool::instance()->get_connection('default');
+        return $connection->query(" Select q1.qa_id as true_id, q2.qa_text, q2.qa_answer_true, q2.qa_id
+                                    from questans q1
+                                    join questans q2 
+                                    on q1.qa_question_id = q2.qa_question_id
+                                    WHERE q2.qa_id = ($id) AND q1.qa_answer_true = 1;")->as_array();
     }
     
     public function update_user($id, $name, $email, $role)
@@ -147,5 +162,39 @@ class Model_Dashboard extends Model
             ->where('U_ID', '=', $id);
         $builder->statement();
         $builder->execute();  
+    }
+    
+    public function get_user_test($id) 
+    {      
+        $builder = DB_SQL::select('default')
+            ->from('USER_QA')
+            ->column('U_ANSW')
+            ->column('U_RES')    
+            ->where('U_ID', '=', $id);
+        $builder->statement();
+        return $builder->query()->as_array();  
+    }
+    
+    public function wrong_answers($id_array)
+    {    
+        $list = implode(',', $id_array);
+        $connection = DB_Connection_Pool::instance()->get_connection('default');
+        return $connection->query(" Select q1.qa_text as question, q2.qa_text as wrong_answer, q3.qa_text as true_answer
+                                    from questans q1
+                                    join questans q2 
+                                    on q1.qa_id = q2.qa_question_id
+                                    join questans q3
+                                    on q2.qa_question_id = q3.qa_question_id
+                                    WHERE q2.qa_id IN ($list) AND q2.qa_answer_true = 0 AND q3.qa_answer_true = 1;")->as_array();
+    }
+    
+    public function open_test($id)
+    {
+        $builder = DB_SQL::update('default')
+            ->table('USER_QA')
+            ->set('U_TOKEN', NULL)
+            ->where('U_ID', '=', $id);
+        $builder->statement();
+        $builder->execute();       
     }
 }

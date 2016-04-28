@@ -10,8 +10,18 @@ and open the template in the editor.
 
 .answers{
     margin-left: 20px;
+    border: 3px solid graytext;
+    
 }
-
+.questions{
+    background-color: white; 
+} 
 .questions p, .questions input, .answers p, .answers input{
     display: inline-block;
+}
+
+
+
+input:valid {
+    border: 3px solid green;
 }
